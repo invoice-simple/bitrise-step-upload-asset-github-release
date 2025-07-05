@@ -1,6 +1,6 @@
 {
   "name": "bitrise-step-upload-asset-github",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Upload Bitrise assets to an already existant Github Release",
   "main": "step.sh",
   "scripts": {
