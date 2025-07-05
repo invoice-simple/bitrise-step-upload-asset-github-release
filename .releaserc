@@ -1,0 +1,52 @@
+{
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/invoice-simple/is-mobile.git"
+  },
+  "publishConfig": {
+    "access": "restricted"
+  },
+  "tagFormat": "v${version}",
+  "plugins": [
+    [
+      "@semantic-release/commit-analyzer",
+      {
+        "preset": "conventionalcommits"
+      }
+    ],
+    [
+      "@semantic-release/release-notes-generator",
+      {
+        "preset": "conventionalcommits"
+      }
+    ],
+    [
+      "@semantic-release/exec",
+      {
+        "publishCmd": "./update_version_files.sh ${nextRelease.version}"
+      }
+    ],
+    [
+      "@semantic-release/npm",
+      {
+        "npmPublish": false
+      }
+    ],
+    [
+      "@semantic-release/github",
+      {
+        "successComment": false
+      }
+    ],
+    [
+      "@semantic-release/git",
+      {
+        "assets": [
+          "step.yml",
+          "package.json"
+        ],
+        "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+      }
+    ]
+  ]
+}

@@ -285,19 +285,19 @@ upload_files() {
     local files_to_upload=()
     local failed_uploads=()
     
-    # Collect files to upload
+    # Collect files to upload (only .apk and .ipa files)
     if [[ -f "${deploy_path}" ]]; then
-        files_to_upload=("${deploy_path}")
+        # Check if single file has the right extension
+        if [[ "${deploy_path}" == *.apk || "${deploy_path}" == *.ipa ]]; then
+            files_to_upload=("${deploy_path}")
+        else
+            log_info "Skipping file '$(basename "${deploy_path}")' - only .apk and .ipa files are supported"
+        fi
     elif [[ -d "${deploy_path}" ]]; then
-        # Find all files in directory (not recursive)
+        # Find only .apk and .ipa files in directory (not recursive)
         while IFS= read -r -d '' file; do
             files_to_upload+=("$file")
-        done < <(find "${deploy_path}" -maxdepth 1 -type f -print0)
-    fi
-    
-    if [[ ${#files_to_upload[@]} -eq 0 ]]; then
-        log_error "No files found to upload"
-        exit 1
+        done < <(find "${deploy_path}" -maxdepth 1 -type f \( -name "*.apk" -o -name "*.ipa" \) -print0)
     fi
     
     log_info "Found ${#files_to_upload[@]} file(s) to upload"

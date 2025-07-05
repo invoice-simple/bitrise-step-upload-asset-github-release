@@ -1,0 +1,28 @@
+{
+  "name": "bitrise-step-upload-asset-github",
+  "version": "1.0.0",
+  "description": "Upload Bitrise assets to an already existant Github Release",
+  "main": "step.sh",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/invoice-simple/bitrise-step-upload-asset-github-release.git"
+  },
+  "keywords": [
+    "bitrise"
+  ],
+  "author": "Gabs Simonetti <gabs@invoicesimple.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/invoice-simple/bitrise-step-upload-asset-github-release/issues"
+  },
+  "homepage": "https://github.com/invoice-simple/bitrise-step-upload-asset-github-release#readme",
+  "devDependencies": {
+    "@semantic-release/exec": "^7.1.0",
+    "@semantic-release/git": "^10.0.1",
+    "conventional-changelog-conventionalcommits": "^9.0.0",
+    "semantic-release": "^24.2.6"
+  }
+}
