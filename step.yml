@@ -13,9 +13,9 @@ summary: |
   Upload Bitrise assets to an already existant Github Release
 description: |
   Upload Bitrise assets to an already existant Github Release
-website: https://github.com/invoice-simple/bitrise-upload-asset-github-release/bitrise-step-upload-asset-github-release
-source_code_url: https://github.com/invoice-simple/bitrise-upload-asset-github-release/bitrise-step-upload-asset-github-release
-support_url: https://github.com/invoice-simple/bitrise-upload-asset-github-release/bitrise-step-upload-asset-github-release/issues
+website: https://github.com/invoice-simple/bitrise-step-upload-asset-github-release
+source_code_url: https://github.com/invoice-simple/bitrise-step-upload-asset-github-release
+support_url: https://github.com/invoice-simple/bitrise-step-upload-asset-github-release/issues
 
 # If this step should be available only for certain project types
 # just uncomment this `project_type_tags` section and include all the
