@@ -23,7 +23,7 @@
     [
       "@semantic-release/exec",
       {
-        "publishCmd": "./update_version_files.sh ${nextRelease.version}"
+        "prepareCmd": "./update_version_files.sh ${nextRelease.version}"
       }
     ],
     [
