@@ -74,16 +74,16 @@ inputs:
 
         If you specify a file path, then only the specified file will be deployed.
       is_required: true
-  - github_repo: ""
+  - github_repo: "$GITHUB_REPOSITORY_PATH"
     opts:
-      title: "GitHub Repository"
+      title: "GitHub Repository Path"
       summary: The GitHub repository in owner/repo format
       description: |
         Specify the GitHub repository where the release is located.
         Format: owner/repository (e.g., "mycompany/myproject")
       is_required: true
 
-  - github_token: ""
+  - github_token: "$GITHUB_ACCESS_TOKEN"
     opts:
       title: "GitHub Personal Access Token"
       summary: GitHub token with repo access permissions
@@ -94,7 +94,7 @@ inputs:
       is_required: true
       is_sensitive: true
 
-  - tag_id: ""
+  - tag_id: "$BITRISE_GIT_TAG"
     opts:
       title: "Release Tag"
       summary: The git tag name of the release
