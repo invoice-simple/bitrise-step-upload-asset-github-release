@@ -4,6 +4,7 @@ on:
     branches:
       - master # or main
       - next
+  workflow_dispatch:
 
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
