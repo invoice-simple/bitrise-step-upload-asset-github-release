@@ -59,7 +59,7 @@ type_tags:
 #   - name: cmake
 #   apt_get:
 #   - name: cmake
-version: 1.0.4
+version: 1.1.0
 toolkit:
   bash:
     entry_file: step.sh
