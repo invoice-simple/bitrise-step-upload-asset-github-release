@@ -1,15 +1,16 @@
-# GitHub Release Asset Upload
+# Bitrise Action - GitHub Release Asset Upload
 
 [![Step changelog](https://shields.io/github/v/release/invoice-simple/bitrise-step-upload-asset-github-release?include_prereleases&label=changelog&color=blueviolet)](https://github.com/invoice-simple/bitrise-step-upload-asset-github-release/releases)
 
-Upload your mobile app assets (.apk and .ipa files) to an existing GitHub Release with flexible file selection and dry run capabilities.
+Upload your mobile app assets (.apk and .ipa files) to an existing GitHub Release.
+Useful when you're triggering GitHub Releases outside of Bitrise (via a tool such as [semantic-release](https://github.com/semantic-release/semantic-release)) but still wants your assets to be available on the release tab.
 
 <details>
 <summary>Description</summary>
 
 The Step uploads your mobile app binaries and other assets to an existing GitHub Release. By default, it automatically filters for APK (Android) and IPA (iOS) files, but you can specify custom file patterns to upload any files you need.
 
-Please note that this Step requires an **existing GitHub Release** to be created beforehand. The Step will upload assets to the release identified by the provided tag name.
+Please note that this Step requires an **existing GitHub Release** to be created beforehand. The Step will upload assets to the release identified by the provided tag name. If you need to create a new release with the assets, use the [GitHub Release](https://www.bitrise.io/integrations/steps/github-release) step instead of this.
 
 ### Key Features
 
@@ -53,7 +54,7 @@ To deploy your app assets with the Step:
 1. **GitHub Repository Path**: Set this to your repository in `owner/repo` format (e.g., `mycompany/myapp`)
 2. **GitHub Personal Access Token**: Add the Secret Environment Variable containing your GitHub token
 3. **Deploy directory or file path**: Specify the path to your built assets (defaults to `$BITRISE_DEPLOY_DIR`)
-4. **Release Tag**: Provide the tag name of the existing GitHub Release where assets should be uploaded
+4. **Release Tag**: Provide the tag name of the existing GitHub Release where assets should be uploaded (defaults to `$BITRISE_GIT_TAG`)
 5. **Files to upload** (Optional): Customize which files to upload using patterns or exact paths
 6. **Dry Run** (Optional): Preview files that would be uploaded without actually uploading
 
@@ -61,11 +62,7 @@ To deploy your app assets with the Step:
 
 #### Default Behavior
 
-When no custom files are specified, the Step automatically uploads:
-
-- **Android**: `.apk` files
-- **iOS**: `.ipa` files
-- **Other files** in the deploy directory are automatically skipped
+When no custom files are specified, the Step automatically uploads only **Android** (`.apk`) and **iOS** (`.ipa`) files. Other files in the deploy directory are automatically skipped.
 
 #### Custom File Selection
 
@@ -82,7 +79,6 @@ Use the `files_to_upload` parameter to specify exactly which files to upload:
 
 - `app-release.apk` - Specific file
 - `MyApp.ipa` - Specific IPA file
-- `/absolute/path/file.zip` - Absolute path
 
 **Mixed Examples:**
 
@@ -130,7 +126,6 @@ Common error scenarios:
 
 ### Related Steps
 
-- [GitHub Release](https://www.bitrise.io/integrations/steps/github-release)
 - [Deploy to Bitrise.io](https://www.bitrise.io/integrations/steps/deploy-to-bitrise-io)
 - [Google Play Deploy](https://www.bitrise.io/integrations/steps/google-play-deploy)
 - [App Store Connect Deploy](https://www.bitrise.io/integrations/steps/deploy-to-itunesconnect-application-loader)
@@ -166,7 +161,7 @@ steps:
         - export_method: app-store
 
   # Upload assets to GitHub Release (default: .apk and .ipa files only)
-  - git::https://github.com/invoice-simple/bitrise-step-upload-asset-github-release.git@next:
+  - git::https://github.com/invoice-simple/bitrise-step-upload-asset-github-release.git@latest:
       inputs:
         - github_repo: mycompany/myapp
         - github_token: $GITHUB_ACCESS_TOKEN # Set this as a Secret Environment Variable
@@ -179,7 +174,7 @@ steps:
 Upload specific files using patterns:
 
 ```yaml
-- git::https://github.com/invoice-simple/bitrise-step-upload-asset-github-release.git@next:
+- git::https://github.com/invoice-simple/bitrise-step-upload-asset-github-release.git@latest:
     inputs:
       - files_to_upload: |
           *.apk
@@ -194,7 +189,7 @@ Upload specific files using patterns:
 Test your file patterns before actual upload:
 
 ```yaml
-- git::https://github.com/invoice-simple/bitrise-step-upload-asset-github-release.git@next:
+- git::https://github.com/invoice-simple/bitrise-step-upload-asset-github-release.git@latest:
     inputs:
       - deploy_path: ./build
       - files_to_upload: |
@@ -212,9 +207,9 @@ Complete workflow with custom paths and validation:
 steps:
   - upload-asset-github-release:
       inputs:
-        - github_repo: $GITHUB_REPOSITORY_PATH
+        - github_repo: mycompany/myapprepo
         - github_token: $GITHUB_ACCESS_TOKEN
-        - tag_id: $BITRISE_GIT_TAG
+        - tag_id: v1.0.0
         - deploy_path: $BITRISE_DEPLOY_DIR
         - files_to_upload: |
             mobile/*.apk
