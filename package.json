@@ -14,7 +14,7 @@
     "bitrise"
   ],
   "author": "Gabs Simonetti <gabs@invoicesimple.com>",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/invoice-simple/bitrise-step-upload-asset-github-release/issues"
   },
