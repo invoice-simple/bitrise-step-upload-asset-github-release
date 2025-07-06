@@ -100,13 +100,13 @@ check_jq() {
 collect_files_to_upload() {
     local deploy_path="$1"
     local files_to_upload_param="$2"
-    local -n files_array_ref="$3"  # Pass array by reference
     
-    files_array_ref=()  # Clear the array
+    # Clear and initialize the global array
+    files_to_upload_result=()
     
     if [[ -n "${files_to_upload_param:-}" ]]; then
         # Custom file list/patterns provided - use exactly what user specified
-        log_info "Using custom file list from files_to_upload parameter" >&2
+        log_info "Using custom file list from files_to_upload parameter"
         
         # Determine the base directory for pattern resolution
         local base_dir
@@ -166,8 +166,8 @@ collect_files_to_upload() {
             # Add matched files to upload list
             if [[ ${#matched_files[@]} -gt 0 ]]; then
                 for matched_file in "${matched_files[@]}"; do
-                    files_array_ref+=("${matched_file}")
-                    log_info "Added file: ${matched_file}" >&2
+                    files_to_upload_result+=("${matched_file}")
+                    log_info "Added file: ${matched_file}"
                 done
             else
                 log_error "No files found matching pattern/path: ${file_spec}"
@@ -178,19 +178,19 @@ collect_files_to_upload() {
         
     else
         # Default behavior - filter for .apk and .ipa files only
-        log_info "Using default behavior: filtering for .apk and .ipa files" >&2
+        log_info "Using default behavior: filtering for .apk and .ipa files"
         
         if [[ -f "${deploy_path}" ]]; then
             # Check if single file has the right extension
             if [[ "${deploy_path}" == *.apk || "${deploy_path}" == *.ipa ]]; then
-                files_array_ref=("${deploy_path}")
+                files_to_upload_result=("${deploy_path}")
             else
-                log_info "Skipping file '$(basename "${deploy_path}")' - only .apk and .ipa files are supported by default" >&2
+                log_info "Skipping file '$(basename "${deploy_path}")' - only .apk and .ipa files are supported by default"
             fi
         elif [[ -d "${deploy_path}" ]]; then
             # Find only .apk and .ipa files in directory (not recursive)
             while IFS= read -r -d '' file; do
-                files_array_ref+=("$file")
+                files_to_upload_result+=("$file")
             done < <(find "${deploy_path}" -maxdepth 1 -type f \( -name "*.apk" -o -name "*.ipa" \) -print0)
         fi
     fi
@@ -374,32 +374,30 @@ upload_files() {
     
     log_info "Starting file upload process..."
     
-    local files_to_upload=()
-    
     # Collect files to upload using the dedicated function
-    if ! collect_files_to_upload "${deploy_path}" "${files_to_upload:-}" files_to_upload; then
+    if ! collect_files_to_upload "${deploy_path}" "${files_to_upload:-}"; then
         exit 1
     fi
     
-    if [[ ${#files_to_upload[@]} -eq 0 ]]; then
+    if [[ ${#files_to_upload_result[@]} -eq 0 ]]; then
         log_error "No files found to upload"
         exit 1
     fi
     
-    log_info "Found ${#files_to_upload[@]} file(s) to upload"
+    log_info "Found ${#files_to_upload_result[@]} file(s) to upload"
     
     # Check if this is a dry run
     if [[ "${dry_run:-false}" == "true" ]]; then
         log_dry_run "Dry run mode enabled - listing files that would be uploaded:"
         echo ""
-        for i in "${!files_to_upload[@]}"; do
-            local file="${files_to_upload[$i]}"
+        for i in "${!files_to_upload_result[@]}"; do
+            local file="${files_to_upload_result[$i]}"
             local filename=$(basename "${file}")
             local filesize=$(stat -f%z "${file}" 2>/dev/null || stat -c%s "${file}" 2>/dev/null || echo "unknown")
             log_dry_run "$(printf "%2d. %-40s (%s bytes)" $((i+1)) "${filename}" "${filesize}")"
         done
         echo ""
-        log_dry_run "Total files: ${#files_to_upload[@]}"
+        log_dry_run "Total files: ${#files_to_upload_result[@]}"
         log_dry_run "No actual upload performed (dry run mode)"
         return 0
     fi
@@ -408,17 +406,17 @@ upload_files() {
     local failed_uploads=()
     
     # Upload each file
-    for file in "${files_to_upload[@]}"; do
+    for file in "${files_to_upload_result[@]}"; do
         if ! upload_file "${file}" "${repo}" "${release_id}" "${token}"; then
             failed_uploads+=("$(basename "${file}")")
         fi
     done
     
     # Report results
-    local successful_uploads=$((${#files_to_upload[@]} - ${#failed_uploads[@]}))
+    local successful_uploads=$((${#files_to_upload_result[@]} - ${#failed_uploads[@]}))
     
     if [[ ${#failed_uploads[@]} -eq 0 ]]; then
-        log_success "All ${#files_to_upload[@]} file(s) uploaded successfully"
+        log_success "All ${#files_to_upload_result[@]} file(s) uploaded successfully"
     else
         log_error "${#failed_uploads[@]} file(s) failed to upload: ${failed_uploads[*]}"
         log_info "${successful_uploads} file(s) uploaded successfully"
