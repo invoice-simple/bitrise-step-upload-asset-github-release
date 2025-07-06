@@ -65,17 +65,7 @@ toolkit:
     entry_file: step.sh
 
 inputs:
-  - deploy_path: $BITRISE_DEPLOY_DIR
-    opts:
-      title: "Deploy directory or file path"
-      summary: Specify the directory or file path which will be deployed.
-      description: |
-        If the specified path is a directory, then every file in the specified directory, excluding sub-directories, will be deployed.
-
-        If you specify a file path, then only the specified file will be deployed.
-      is_required: true
-
-  - github_repo: "$GITHUB_REPOSITORY_PATH"
+  - github_repo: ""
     opts:
       title: "GitHub Repository Path"
       summary: The GitHub repository in owner/repo format
@@ -103,6 +93,16 @@ inputs:
         Specify the tag name of the GitHub release where assets will be uploaded.
         The release must already exist for the specified tag.
         Example: "v1.0.0" or "release-2023.1"
+      is_required: true
+
+  - deploy_path: $BITRISE_DEPLOY_DIR
+    opts:
+      title: "Deploy directory or file path"
+      summary: Specify the directory or file path which will be deployed.
+      description: |
+        If the specified path is a directory, then every file in the specified directory, excluding sub-directories, will be deployed.
+
+        If you specify a file path, then only the specified file will be deployed.
       is_required: true
 
   - files_to_upload: ""
