@@ -1,93 +1,162 @@
-# upload-asset-github-release
+# Bitrise Step - GitHub Release Asset Upload
 
-Upload Bitrise assets to an already existant Github Release
+[![Step changelog](https://shields.io/github/v/release/invoice-simple/bitrise-step-upload-asset-github-release?include_prereleases&label=changelog&color=blueviolet)](https://github.com/invoice-simple/bitrise-step-upload-asset-github-release/releases)
 
+Upload your mobile app assets (.apk and .ipa files) to an existing GitHub Release.
 
-## How to use this Step
+<details>
+<summary>Description</summary>
 
-Can be run directly with the [bitrise CLI](https://github.com/bitrise-io/bitrise),
-just `git clone` this repository, `cd` into it's folder in your Terminal/Command Line
-and call `bitrise run test`.
+This Bitrise Step uploads your mobile app binaries to an existing GitHub Release. It works with both APK (Android) and IPA (iOS) files, automatically filtering out other file types for focused asset management.
 
-*Check the `bitrise.yml` file for required inputs which have to be
-added to your `.bitrise.secrets.yml` file!*
+Please note that this Step requires an **existing GitHub Release** to be created beforehand. The Step will upload assets to the release identified by the provided tag name. If you would like to create a GitHub release including assets, use the [GitHub Release](https://www.bitrise.io/integrations/steps/github-release) step instead.
 
-Step by step:
+### Configuring the Step
 
-1. Open up your Terminal / Command Line
-2. `git clone` the repository
-3. `cd` into the directory of the step (the one you just `git clone`d)
-5. Create a `.bitrise.secrets.yml` file in the same directory of `bitrise.yml`
-   (the `.bitrise.secrets.yml` is a git ignored file, you can store your secrets in it)
-6. Check the `bitrise.yml` file for any secret you should set in `.bitrise.secrets.yml`
-  * Best practice is to mark these options with something like `# define these in your .bitrise.secrets.yml`, in the `app:envs` section.
-7. Once you have all the required secret parameters in your `.bitrise.secrets.yml` you can just run this step with the [bitrise CLI](https://github.com/bitrise-io/bitrise): `bitrise run test`
+This Step uses GitHub's API, so you need to set up proper authentication and permissions:
 
-An example `.bitrise.secrets.yml` file:
+#### Setting up GitHub API Access
 
+1. **Create a Personal Access Token**:
+
+   - Go to [GitHub Settings > Developer settings > Personal access tokens](https://github.com/settings/tokens)
+   - Generate a new token with `repo` scope (for private repositories) or `public_repo` scope (for public repositories)
+   - Store the token securely as a [Secret Environment Variable](https://devcenter.bitrise.io/builds/env-vars-secret-env-vars/) in Bitrise
+
+2. **Ensure Release Exists**:
+   - The GitHub Release must already exist with the specified tag
+   - You can create releases manually via GitHub's web interface or use GitHub's API/CLI tools
+   - The Step will fail if the specified tag/release doesn't exist
+
+#### Required Permissions
+
+Your GitHub token must have the following permissions:
+
+- **Contents**: Write (to upload release assets)
+- **Metadata**: Read (to access repository information)
+
+For private repositories, ensure the token has full `repo` access.
+
+### Step Configuration
+
+To deploy your app assets with the Step:
+
+1. **GitHub Repository Path**: Set this to your repository in `owner/repo` format (e.g., `mycompany/myapp`)
+2. **GitHub Personal Access Token**: Add the Secret Environment Variable containing your GitHub token
+3. **Deploy directory or file path**: Specify the path to your built assets (defaults to `$BITRISE_DEPLOY_DIR`)
+4. **Release Tag**: Provide the tag name of the existing GitHub Release where assets should be uploaded
+
+### File Filtering
+
+The Step automatically filters files to upload only mobile app binaries:
+
+- **Android**: `.apk` files
+- **iOS**: `.ipa` files
+- **Other files** in the deploy directory are automatically skipped
+
+### Troubleshooting
+
+If the Step fails, check the following:
+
+- **Authentication**: Verify your GitHub token is valid and has the correct permissions
+- **Release Existence**: Ensure a release with the specified tag already exists in the repository
+- **Repository Path**: Check the repository path format is correct (`owner/repo`)
+- **File Permissions**: Verify the deploy path contains readable `.apk` or `.ipa` files
+- **Network**: Ensure the build environment has internet access to reach GitHub's API
+
+Common error scenarios:
+
+- **404 Not Found**: Release with the specified tag doesn't exist
+- **401 Unauthorized**: Invalid or expired GitHub token
+- **422 Unprocessable Entity**: Asset may already exist with the same name
+
+### Useful links
+
+- [GitHub REST API - Release Assets](https://docs.github.com/en/rest/releases/assets)
+- [Creating GitHub Personal Access Tokens](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token)
+- [Bitrise Secret Environment Variables](https://devcenter.bitrise.io/builds/env-vars-secret-env-vars/)
+
+### Related Steps
+
+- [Deploy to Bitrise.io](https://www.bitrise.io/integrations/steps/deploy-to-bitrise-io)
+- [Google Play Deploy](https://www.bitrise.io/integrations/steps/google-play-deploy)
+- [App Store Connect Deploy](https://www.bitrise.io/integrations/steps/deploy-to-itunesconnect-application-loader)
+</details>
+
+## 🧩 Get started
+
+Add this step directly to your workflow in the [Bitrise Workflow Editor](https://devcenter.bitrise.io/steps-and-workflows/steps-and-workflows-index/).
+
+You can also run this step directly with [Bitrise CLI](https://github.com/bitrise-io/bitrise).
+
+### Example
+
+Build your mobile apps and upload them to an existing GitHub Release:
+
+```yaml
+steps:
+  # Build Android APK
+  - android-build:
+      inputs:
+        - variant: release
+        - build_type: apk
+  - sign-apk:
+      inputs:
+        - android_app: $BITRISE_APK_PATH
+
+  # Build iOS IPA
+  - xcode-archive:
+      inputs:
+        - scheme: MyApp
+  - export-xcarchive:
+      inputs:
+        - export_method: app-store
+
+  # Upload assets to GitHub Release
+  - git::https://github.com/invoice-simple/bitrise-step-upload-asset-github-release.git@master:
+      inputs:
+        - github_repo: mycompany/myapp
 ```
-envs:
-- A_SECRET_PARAM_ONE: the value for secret one
-- A_SECRET_PARAM_TWO: the value for secret two
+
+### Advanced Example with Custom Paths
+
+```yaml
+steps:
+  - git::https://github.com/invoice-simple/bitrise-step-upload-asset-github-release.git@master:
+      inputs:
+        - github_repo: $GITHUB_REPOSITORY_PATH
+        - tag_id: $BITRISE_GIT_TAG
+        - deploy_path: ./build/outputs # Custom path containing .apk/.ipa files
 ```
 
-## How to create your own step
+## ⚙️ Configuration
 
-1. Create a new git repository for your step (**don't fork** the *step template*, create a *new* repository)
-2. Copy the [step template](https://github.com/bitrise-steplib/step-template) files into your repository
-3. Fill the `step.sh` with your functionality
-4. Wire out your inputs to `step.yml` (`inputs` section)
-5. Fill out the other parts of the `step.yml` too
-6. Provide test values for the inputs in the `bitrise.yml`
-7. Run your step with `bitrise run test` - if it works, you're ready
+<details>
+<summary>Inputs</summary>
 
-__For Step development guidelines & best practices__ check this documentation: [https://github.com/bitrise-io/bitrise/blob/master/_docs/step-development-guideline.md](https://github.com/bitrise-io/bitrise/blob/master/_docs/step-development-guideline.md).
+| Key            | Description                                                                                                                                                                                                                                     | Flags               | Default                   |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- | ------------------------- |
+| `deploy_path`  | Path to the directory or file containing assets to deploy. If a directory is specified, all `.apk` and `.ipa` files will be uploaded (non-recursive). If a file is specified, only that file will be uploaded if it's an `.apk` or `.ipa` file. | required            | `$BITRISE_DEPLOY_DIR`     |
+| `github_repo`  | GitHub repository in owner/repo format where the release is located. Example: `mycompany/myproject`                                                                                                                                             | required            | `$GITHUB_REPOSITORY_PATH` |
+| `github_token` | Personal Access Token for GitHub API authentication. The token must have 'repo' scope to access private repositories and upload release assets. Store this as a Secret Environment Variable.                                                    | required, sensitive | `$GITHUB_ACCESS_TOKEN`    |
+| `tag_id`       | The tag name of the existing GitHub release where assets will be uploaded. The release must already exist with this tag. Examples: `v1.0.0`, `release-2023.1`                                                                                   | required            | `$BITRISE_GIT_TAG`        |
 
-**NOTE:**
+</details>
 
-If you want to use your step in your project's `bitrise.yml`:
+<details>
+<summary>Outputs</summary>
 
-1. git push the step into it's repository
-2. reference it in your `bitrise.yml` with the `git::PUBLIC-GIT-CLONE-URL@BRANCH` step reference style:
+This step does not generate any output environment variables. Success or failure is indicated by the step's exit code and log messages.
 
-```
-- git::https://github.com/user/my-step.git@branch:
-   title: My step
-   inputs:
-   - my_input_1: "my value 1"
-   - my_input_2: "my value 2"
-```
+</details>
 
-You can find more examples of step reference styles
-in the [bitrise CLI repository](https://github.com/bitrise-io/bitrise/blob/master/_examples/tutorials/steps-and-workflows/bitrise.yml#L65).
+## 🙋 Contributing
 
-## How to contribute to this Step
+We welcome [pull requests](https://github.com/invoice-simple/bitrise-step-upload-asset-github-release/pulls) and [issues](https://github.com/invoice-simple/bitrise-step-upload-asset-github-release/issues) against this repository.
 
-1. Fork this repository
-2. `git clone` it
-3. Create a branch you'll work on
-4. To use/test the step just follow the **How to use this Step** section
-5. Do the changes you want to
-6. Run/test the step before sending your contribution
-  * You can also test the step in your `bitrise` project, either on your Mac or on [bitrise.io](https://www.bitrise.io)
-  * You just have to replace the step ID in your project's `bitrise.yml` with either a relative path, or with a git URL format
-  * (relative) path format: instead of `- original-step-id:` use `- path::./relative/path/of/script/on/your/Mac:`
-  * direct git URL format: instead of `- original-step-id:` use `- git::https://github.com/user/step.git@branch:`
-  * You can find more example of alternative step referencing at: https://github.com/bitrise-io/bitrise/blob/master/_examples/tutorials/steps-and-workflows/bitrise.yml
-7. Once you're done just commit your changes & create a Pull Request
+For pull requests, work on your changes in a forked repository and use the Bitrise CLI to [run step tests locally](https://devcenter.bitrise.io/bitrise-cli/run-your-first-build/).
 
+Learn more about developing steps:
 
-## Share your own Step
-
-You can share your Step or step version with the [bitrise CLI](https://github.com/bitrise-io/bitrise). If you use the `bitrise.yml` included in this repository, all you have to do is:
-
-1. In your Terminal / Command Line `cd` into this directory (where the `bitrise.yml` of the step is located)
-1. Run: `bitrise run test` to test the step
-1. Run: `bitrise run audit-this-step` to audit the `step.yml`
-1. Check the `share-this-step` workflow in the `bitrise.yml`, and fill out the
-   `envs` if you haven't done so already (don't forget to bump the version number if this is an update
-   of your step!)
-1. Then run: `bitrise run share-this-step` to share the step (version) you specified in the `envs`
-1. Send the Pull Request, as described in the logs of `bitrise run share-this-step`
-
-That's all ;)
+- [Create your own step](https://devcenter.bitrise.io/contributors/create-your-own-step/)
+- [Testing your Step](https://devcenter.bitrise.io/contributors/testing-and-versioning-your-steps/)
