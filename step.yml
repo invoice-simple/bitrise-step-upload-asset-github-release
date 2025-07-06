@@ -59,7 +59,7 @@ type_tags:
 #   - name: cmake
 #   apt_get:
 #   - name: cmake
-version: 1.0.4
+version: 1.0.2
 toolkit:
   bash:
     entry_file: step.sh
@@ -74,6 +74,7 @@ inputs:
 
         If you specify a file path, then only the specified file will be deployed.
       is_required: true
+
   - github_repo: "$GITHUB_REPOSITORY_PATH"
     opts:
       title: "GitHub Repository Path"
@@ -103,3 +104,46 @@ inputs:
         The release must already exist for the specified tag.
         Example: "v1.0.0" or "release-2023.1"
       is_required: true
+
+  - files_to_upload: ""
+    opts:
+      title: "Files to upload (optional)"
+      summary: Specify which files to upload, overriding default .apk/.ipa filtering
+      description: |
+        Optional: Specify files to upload using patterns or exact paths, one per line. If provided, this overrides the default behavior of uploading all .apk and .ipa files.
+
+        Supports:
+        - File patterns: `*.apk`, `*.ipa`, `app-*.apk`
+        - Exact file paths: `app-release.apk`, `MyApp.ipa`
+        - Relative paths from deploy_path: `outputs/app-release.apk`
+        - Multiple files/patterns (newline separated)
+
+        Patterns are resolved relative to deploy_path directory.
+        If empty, defaults to uploading all .apk and .ipa files from deploy_path.
+
+        Example:
+        ```
+        *.apk
+        MyApp.ipa
+        mapping.txt
+        outputs/*.aab
+        ```
+      is_required: false
+
+  - dry_run: false
+    opts:
+      title: "Dry Run"
+      summary: Preview files that would be uploaded without actually uploading
+      description: |
+        If set to "true", the step will only show which files would be uploaded without actually performing the upload.
+        This is useful for testing your file patterns and validating your configuration.
+
+        When enabled:
+        - Files are collected and validated
+        - Upload list is displayed
+        - No actual upload occurs
+        - No GitHub API calls are made
+      is_required: false
+      value_options:
+        - true
+        - false
